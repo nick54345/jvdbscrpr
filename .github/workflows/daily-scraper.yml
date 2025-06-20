@@ -2,13 +2,14 @@ name: Daily VR Scraper
 
 on:
   schedule:
-    # Runs at 11:30 UTC every day, which is 5:00 PM IST
     - cron: '30 11 * * *'
   workflow_dispatch:
 
 jobs:
   scrape-and-notify:
     runs-on: ubuntu-latest
+    permissions: # <--- ADD THIS BLOCK
+      contents: write # <--- Grant write permission to the workflow for repository contents
 
     steps:
     - name: Checkout code
@@ -30,7 +31,7 @@ jobs:
       env:
         DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
       run: |
-        python jdb.py
+        python your_script_name.py # REMEMBER TO REPLACE THIS WITH YOUR ACTUAL SCRIPT NAME
 
     - name: Commit and push updated processed titles file
       run: |
