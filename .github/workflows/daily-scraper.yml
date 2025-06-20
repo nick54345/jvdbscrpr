@@ -1,0 +1,41 @@
+name: Daily VR Scraper
+
+on:
+  schedule:
+    # Runs at 11:30 UTC every day, which is 5:00 PM IST
+    - cron: '30 11 * * *'
+  workflow_dispatch:
+
+jobs:
+  scrape-and-notify:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        persist-credentials: true
+
+    - name: Set up Python environment
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.x'
+
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Run VR Scraper and get new titles
+      env:
+        DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+      run: |
+        python your_script_name.py # REMEMBER TO REPLACE THIS WITH YOUR ACTUAL SCRIPT NAME
+
+    - name: Commit and push updated processed titles file
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add processed_vr_titles.txt
+        git commit -m "Update processed VR titles [skip ci]" || echo "No changes to commit"
+        git push
