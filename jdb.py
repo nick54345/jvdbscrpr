@@ -10,8 +10,8 @@ from googletrans import Translator
 JAVDB_VR_BASE_URL = "https://javdb.com/search?f=download&q=VR&sb=1" # Base URL without page number
 DISCORD_WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL")
 if not DISCORD_WEBHOOK_URL:
-    print("Error: DISCORD_WEBHOOK_URL environment variable not set. Please set it as a GitHub Secret.")
-    exit(1) # Exit the script if the webhook URL is missing
+    print("Error: DISCORD_WEBHOOK_URL environment variable not set. Please set it as a GitHub Secret.")
+    exit(1)
 PROCESSED_TITLES_FILE = "processed_vr_titles.txt" # File to store already processed titles
 REQUEST_DELAY_SECONDS = 1.5 # Delay in seconds between fetching detail pages (javdb.com or jav321.com)
 LISTING_PAGE_DELAY_SECONDS = 2 # Delay in seconds between fetching consecutive listing pages from javdb.com
