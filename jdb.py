@@ -8,8 +8,10 @@ from googletrans import Translator
 
 # --- Configuration ---
 JAVDB_VR_BASE_URL = "https://javdb.com/search?f=download&q=VR&sb=1" # Base URL without page number
-DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1385618509819805826/V9DDw4NulNIaJatAyaw5IUWySUNYTAhPTH-Daih8bhIGTc9rrfC2GTf5M7x2AG0oBjQe" # <<< IMPORTANT: Replace with your actual Discord Webhook URL
-PROCESSED_TITLES_FILE = "processed_vr_titles.txt" # File to store already processed titles
+DISCORD_WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL")
+if not DISCORD_WEBHOOK_URL:
+    print("Error: DISCORD_WEBHOOK_URL environment variable not set. Please set it as a GitHub Secret.")
+    exit(1) # Exit the script if the webhook URL is missingPROCESSED_TITLES_FILE = "processed_vr_titles.txt" # File to store already processed titles
 REQUEST_DELAY_SECONDS = 1.5 # Delay in seconds between fetching detail pages (javdb.com or jav321.com)
 LISTING_PAGE_DELAY_SECONDS = 2 # Delay in seconds between fetching consecutive listing pages from javdb.com
 NUMBER_OF_PAGES_TO_SCRAPE = 3 # Number of listing pages to scrape from javdb.com
