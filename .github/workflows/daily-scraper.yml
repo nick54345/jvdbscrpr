@@ -30,7 +30,7 @@ jobs:
       env:
         DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
       run: |
-        python your_script_name.py # REMEMBER TO REPLACE THIS WITH YOUR ACTUAL SCRIPT NAME
+        python jdb.py
 
     - name: Commit and push updated processed titles file
       run: |
