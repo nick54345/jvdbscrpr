@@ -11,7 +11,7 @@ JAVDB_VR_BASE_URL = "https://javdb.com/search?f=download&q=VR&sb=1" # Base URL w
 DISCORD_WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL")
 if not DISCORD_WEBHOOK_URL:
     print("Error: DISCORD_WEBHOOK_URL environment variable not set. Please set it as a GitHub Secret.")
-    exit(1)
+    exit(1) # Corrected: Added newline after exit(1)
 PROCESSED_TITLES_FILE = "processed_vr_titles.txt" # File to store already processed titles
 REQUEST_DELAY_SECONDS = 1.5 # Delay in seconds between fetching detail pages (javdb.com or jav321.com)
 LISTING_PAGE_DELAY_SECONDS = 2 # Delay in seconds between fetching consecutive listing pages from javdb.com
@@ -19,6 +19,17 @@ NUMBER_OF_PAGES_TO_SCRAPE = 3 # Number of listing pages to scrape from javdb.com
 
 # Initialize the Translator
 translator = Translator()
+
+# --- Global Session for Web Requests ---
+# This helps maintain cookies across requests and often makes requests look more "human"
+session = requests.Session()
+# Update User-Agent with a more recent Firefox version for better evasion
+session.headers.update({
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:127.0) Gecko/20100101 Firefox/127.0", # Updated User-Agent
+    "Accept-Language": "en-US,en;q=0.9,ja;q=0.8",
+    "Accept-Encoding": "gzip, deflate, br",
+    "Connection": "keep-alive"
+})
 
 # --- Function to load processed titles ---
 def load_processed_titles(filename):
@@ -55,13 +66,8 @@ def get_jav321_rating(product_id):
     print(f"    Checking jav321.com for rating: {jav321_url}")
     time.sleep(REQUEST_DELAY_SECONDS) # Be polite to jav321.com too
 
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-        "Accept-Language": "en-US,en;q=0.9"
-    }
-
     try:
-        response = requests.get(jav321_url, headers=headers)
+        response = session.get(jav321_url) # Changed to use global session
         response.raise_for_status() # Raise an HTTPError for bad responses (4xx or 5xx)
 
         soup = BeautifulSoup(response.text, 'html.parser')
@@ -133,13 +139,13 @@ def send_discord_message(title, url, image_url=None, tags=None, rating=None):
                 "title": "",
                 "url": "",
                 "description": "A new VR title has been released on your site.",
-                "color": 65280,  # Green color for Discord embed (decimal for #00FF00)
+                "color": 65280, # Green color for Discord embed (decimal for #00FF00)
                 "fields": embed_fields,
                 "image": image_display_field
             }
         ]
     }
-    headers = {"Content-Type": "application/json"}
+    headers = {"Content-Type": "application/json"} # Headers for Discord API are different
     try:
         response = requests.post(DISCORD_WEBHOOK_URL, data=json.dumps(payload), headers=headers)
         response.raise_for_status()
@@ -160,11 +166,7 @@ def scrape_new_vr_titles():
         print(f"\n--- Scraping page {page_num}: {page_url} ---")
 
         try:
-            headers = {
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-                "Accept-Language": "en-US,en;q=0.9,ja;q=0.8"
-            }
-            response = requests.get(page_url, headers=headers)
+            response = session.get(page_url) # Changed to use global session
             response.raise_for_status()
 
             soup = BeautifulSoup(response.text, 'html.parser')
@@ -200,7 +202,7 @@ def scrape_new_vr_titles():
                 image_url = image_tag.get('src') if image_tag else None
 
                 if original_title not in processed_titles:
-                    print(f"  Found new VR title on page {page_num}: {original_title}. Fetching additional details...")
+                    print(f"    Found new VR title on page {page_num}: {original_title}. Fetching additional details...")
                     found_new_on_page = True
                     found_any_new_titles = True
 
@@ -229,7 +231,7 @@ def scrape_new_vr_titles():
                     time.sleep(REQUEST_DELAY_SECONDS)
 
                     try:
-                        detail_response = requests.get(full_url, headers=headers)
+                        detail_response = session.get(full_url) # Changed to use global session
                         detail_response.raise_for_status()
                         detail_soup = BeautifulSoup(detail_response.text, 'html.parser')
 
@@ -258,10 +260,10 @@ def scrape_new_vr_titles():
                     newly_processed_titles.add(original_title)
 
             if not found_new_on_page and page_num == 1:
-                 print("  No new titles found on this page.")
+                    print("    No new titles found on this page.")
             
             if page_num < NUMBER_OF_PAGES_TO_SCRAPE:
-                print(f"  Finished scraping page {page_num}. Waiting {LISTING_PAGE_DELAY_SECONDS} seconds before next page...")
+                print(f"    Finished scraping page {page_num}. Waiting {LISTING_PAGE_DELAY_SECONDS} seconds before next page...")
                 time.sleep(LISTING_PAGE_DELAY_SECONDS)
 
         except requests.exceptions.RequestException as e:
